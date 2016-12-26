@@ -1,0 +1,40 @@
+{#
+  controller should support:
+    thumbsUp, thumbsDown, playOrPause (toggle current state)
+    next
+#}
+{% macro controlbar(controller, paused) -%}
+  <div class="controlBar">
+    <input id="timerSlider" type="range" min="0" max="60" value="0">
+    <div class="spacing"></div>
+    <div onclick="{{ controller }}.thumbsDown()" class="button">
+      <img id="down_gold" class="svg" src="/static/svg/thumbs_down_gold.svg">
+      <img id="down" class="svg" src="/static/svg/thumbs_down.svg">
+    </div>
+    <div class="spacing"></div>
+    <div onclick="{{ controller }}.playOrPause()" class="button">
+      {% if paused %}
+        <img id="play" class="svg" src="/static/svg/play.svg">
+        <img id="pause" class="svg hidden" src="/static/svg/pause.svg">
+      {% else %}
+        <img id="play" class="svg hidden" src="/static/svg/play.svg">
+        <img id="pause" class="svg" src="/static/svg/pause.svg">
+      {% endif %}
+    </div>
+    <div class="spacing"></div>
+    <div onclick="{{ controller }}.next()" class="button">
+      <img class="svg" src="/static/svg/next.svg">
+    </div>
+    <div class="spacing"></div>
+    <div onclick="$('#up').hide(); {{ controller }}.thumbsUp()" class="button">
+      <img id="up_gold" class="svg" src="/static/svg/thumbs_up_gold.svg">
+      <img id="up" class="svg" src="/static/svg/thumbs_up.svg">
+    </div>
+    <div class="spacing"></div>
+  </div>
+{% block js %}
+  <script type="text/javascript" src="/static/js/jquery-2.1.1.min.js"></script>
+  <script type="text/javascript" src="/static/js/sliding_timer.js"></script>
+  <script src="/static/js/controlbar.js"></script>
+{% endblock %}
+{%- endmacro %}

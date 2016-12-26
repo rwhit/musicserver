@@ -1,0 +1,1 @@
+alsamixer for system-wide control

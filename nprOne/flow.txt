@@ -1,0 +1,9 @@
+
+
+1. no cookie - set cookie, RM=state:AUTH; (can you do that? seems like yes, modulo browser bugs) and redirect to auth, include state=<csrf-token>
+
+2. cookie, state=AUTH && url params have code=<auth code> & state=<csrf-token> - set cookie, RM=state:TOKEN,GUID=<guid>; and issue request to get token
+   
+   response is some interstitial, plus polling code
+
+3. cookie, state=TOKEN;GUID=<guid> && verify guid - play first piece & present options

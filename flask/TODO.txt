@@ -1,0 +1,26 @@
+Overall
+- stop podcast on switch to pandora & vice-versa
+- run pianobar & mplayer seperate from server so restart doesn't kill them
+- figure out why gets stuck after a few hours
+
+Podcast
+- controls
+- progress
+- filter duration 0:00
+- admin u/i
+
+IR Control
+- this looks promising: http://www.instructables.com/id/Raspberry-Pi-Universal-Remote/
+
+Shairport?
+- osx side is airplay
+- for windows, see http://rogueamoeba.com/airfoil/windows/
+- http://trouch.com/2012/08/03/airpi-airplay-audio-with-raspberry/
+
+  sudo aptitude install git libao-dev libssl-dev libcrypt-openssl-rsa-perl libio-socket-inet6-perl libwww-perl avahi-utils
+  cpan install Net::SDP
+  git clone https://github.com/albertz/shairport.git shairport
+  cd shairport
+  make
+  ./shairport.pl -a RaspMusic
+

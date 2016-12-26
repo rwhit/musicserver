@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ podcast.title }}{% endblock %}
+{% block bodyClass %}podcast_play{% endblock %}
+{% block content %}
+<div id="status">
+Playing {{ podcast.title }}, duration {{ podcast.duration }}
+</div>
+{% from 'controlbar.html' import controlbar %}
+{{ controlbar('podcastController', paused) }}
+{% endblock %}
+{% block js %}
+  <script type="text/javascript" src="/static/js/socket.io.min.js"></script>
+{# included by controlbar.html 
+  <script type="text/javascript" src="/static/js/jquery-2.1.1.min.js"></script>
+#}
+  <script src="/static/js/podcast.js"></script>
+  <script type="text/javascript" charset="utf-8">
+    $(document).ready(function() {
+      socket = io.connect('http://' + document.domain + ':' + location.port + "/podcastsocket");
+      initHandlers();
+      setPodcastInfo({{ podcast|tojson|safe }}, "{{ paused }}", {{ time }});
+    });
+  </script>
+{% endblock %}

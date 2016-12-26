@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Music server{% endblock %}
+{% block content %}
+<ul class="pages">
+  <li class="page" onclick="sendMessage('restart');">Restart Server</li>
+  <li class="page"> </li>
+</ul>
+<div class="hidden" id="result">
+No results
+</div>
+{% endblock %}
+{% block js %}
+  <script type="text/javascript" src="/static/js/socket.io.min.js"></script>
+  <script type="text/javascript" src="/static/js/jquery-2.1.1.min.js"></script>
+  <script type="text/javascript" src="/static/js/admin.js"></script>
+  <script type="text/javascript" charset="utf-8">
+    $(document).ready(function() {
+      socket = io.connect('http://' + document.domain + ':' + location.port + "/adminsocket");
+      initHandlers();
+    });
+  </script>
+{% endblock %}

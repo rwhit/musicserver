@@ -1,0 +1,20 @@
+#!/bin/bash
+home=$(dirname $0)
+source $home/config
+cd $MUSIC_BASE/flask
+mkdir -p logs
+cd logs
+for f in *.err *.out
+do
+  [[ -f $f ]] && mv $f $f.$(date +%Y-%m-%d_%H-%M)
+done
+cd ..
+cmd="sudo nohup $MUSIC_BASE/flask/server.py"
+# kill old instance, if any
+oldpid=$(pgrep -f "$cmd")
+[[ ! -z $oldpid ]] && { $MUSIC_BASE/scripts/killtree.sh $oldpid; sudo lsof -P | grep LISTEN | grep ":80"; }
+$cmd >logs/server.out 2>logs/server.err &
+cd logs
+# cleanup, zip old logs
+find . -type f -mtime +60 | xargs -r rm -f
+find . -type f \! \( -name \*.gz -o -name \*.out -o -name \*.err \) | xargs -r gzip

@@ -1,8 +1,8 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <link rel="stylesheet" href={% block mainStyle %}"/static/css/style.css"{% endblock %} />
-  <title>{% block title %}{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <title>Music server</title>
   <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -24,8 +24,26 @@
 <meta name="msapplication-TileColor" content="#b91d47">
 <meta name="msapplication-TileImage" content="/static/favicon/mstile-144x144.png">
 <head>
-<body class="{% block bodyClass %}{% endblock %}">
-  {% block content %}{% endblock %}
-  {% block js %}{% endblock %}
+<body class="">
+  
+<ul class="pages">
+  <li class="page" onclick="sendMessage('restart');">Restart Server</li>
+  <li class="page"> </li>
+</ul>
+<div class="admin-result" class="hidden" id="result">
+No results
+</div>
+
+  
+  <script type="text/javascript" src="/static/js/socket.io.min.js"></script>
+  <script type="text/javascript" src="/static/js/jquery-2.1.1.min.js"></script>
+  <script type="text/javascript" src="/static/js/admin.js"></script>
+  <script type="text/javascript" charset="utf-8">
+    $(document).ready(function() {
+      socket = io.connect('http://' + document.domain + ':' + location.port + "/adminsocket");
+      initHandlers();
+    });
+  </script>
+
 </body>
 </html>

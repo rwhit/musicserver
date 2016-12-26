@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Radio{% endblock %}
+{% block bodyClass %}radio{% endblock %}
+{% block content %}
+  <div id="stationButton" onClick="toggleStations()">
+    <span class="text">Select a station (<span id="selectedStation"></span>)</span>
+    <div id="stations" class="hidden"></div>
+  </div>
+{% from 'controlbar.html' import controlbar %}
+{{ controlbar('radioController', paused) }}
+  <input id="volumeSlider" onchange="volumeChanged(event)" type="range" min="-20" max="20" value="{{ volume }}">
+  <div>
+    <img id="stationImage" src="" />
+    <div class="stationInfo" >
+      <div id="stationName"></div>
+    </div>
+  </div>
+{% endblock %}
+{% block js %}
+  <script type="text/javascript" src="/static/js/socket.io.min.js"></script>
+  <script src="/static/js/radio.js"></script>
+  <script type="text/javascript" charset="utf-8">
+    $(document).ready(function() {
+      socket = io.connect('http://' + document.domain + ':' + location.port + "/radiosocket");
+      initHandlers();
+      setStationInfo({{ data|tojson|safe }}, "{{ paused }}", {{ time }});
+    });
+  </script>
+{% endblock %}

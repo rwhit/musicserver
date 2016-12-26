@@ -1,14 +1,14 @@
+from baseController import BaseController
 import subprocess
 import os
 import time
 
-class PianobarController():
+class PianobarController(BaseController):
     def __init__(self):
-        self.volume = 5
+        BaseController.__init__(self)
         self.check_status()
         self.writer = open(os.environ["HOME"] + "/.config/pianobar/ctl", "a")
         self.latest = ""
-        self.paused = False
 
     def check_status(self):
         try:
@@ -19,23 +19,7 @@ class PianobarController():
             self.paused = False
             self.elapsedTime = 0
             self.startTime = time.time()
-            subprocess.Popen(['pianobar'])
-
-    def pause(self):
-        self.paused = not self.paused
-        if self.paused:
-            self.elapsedTime = self.elapsedTime + time.time() - self.startTime
-        else:
-            self.startTime = time.time()
-
-    def is_paused(self):
-        return self.paused
-
-    def get_time(self):
-        if self.paused:
-            return self.elapsedTime
-        else:
-            return self.elapsedTime + time.time() - self.startTime
+            subprocess.Popen(['pianobar'], close_fds=True)
 
     def set_latest(self, action, data):
         if action == "songstart":
@@ -58,7 +42,4 @@ class PianobarController():
         message = char * difference
         self.write(message)
         self.volume = volume
-
-    def get_volume(self):
-        return self.volume
 

@@ -1,0 +1,3 @@
+arrows:
+https://openclipart.org/download/people/pitr/pitr_green_arrows_set_1.svg
+https://openclipart.org/download/people/pitr/pitr_red_arrows_set_5.svg

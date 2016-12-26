@@ -1,0 +1,216 @@
+{
+    "attributes": {}, 
+    "errors": [], 
+    "href": "https://api.npr.org/listening/v2/recommendations?channel=npr", 
+    "items": [
+        {
+            "attributes": {
+                "date": "2016-07-04T14:00:00-04:00", 
+                "description": "A brief update", 
+                "duration": 179, 
+                "provider": "NPR", 
+                "rating": {
+                    "affiliations": [], 
+                    "channel": "npr", 
+                    "cohort": "C", 
+                    "duration": 179, 
+                    "elapsed": 0, 
+                    "mediaId": "200070:1|2016-07-04T14:00:00-0400|short", 
+                    "origin": "HRNCWKND1", 
+                    "rating": "START", 
+                    "timestamp": "2016-07-04T14:47:53-0400"
+                }, 
+                "rationale": "", 
+                "skippable": true, 
+                "title": "National Newscast", 
+                "type": "audio", 
+                "uid": "200070:1|2016-07-04T14:00:00-0400|short"
+            }, 
+            "errors": [], 
+            "href": "https://api.npr.org/listening/v2/recommendations?channel=npr&sharedMediaId=200070:1|2016-07-04T14:00:00-0400|short", 
+            "items": [], 
+            "links": {
+                "audio": [
+                    {
+                        "content-type": "audio/mp3", 
+                        "href": "http://public.npr.org/anon.npr-mp3/npr/newscasts/2016/07/04/newscastShort140626.mp3"
+                    }, 
+                    {
+                        "content-type": "audio/aac", 
+                        "href": "http://public.npr.org/npr-mp4/npr/newscasts/2016/07/04/newscastShort140626.mp4"
+                    }, 
+                    {
+                        "content-type": "application/vnd.apple.mpegurl", 
+                        "href": "http://hls.npr.org/nprhls/npr/newscasts/2016/07/04/newscastShort140626/master.m3u8"
+                    }
+                ], 
+                "recommendations": [
+                    {
+                        "content-type": "application/json", 
+                        "href": "https://api.npr.org/listening/v2/ratings?recommend=true&channel=npr&prevStories=1&queued=%5B%5D&flow=2"
+                    }
+                ]
+            }, 
+            "version": "1.0"
+        }, 
+        {
+            "attributes": {
+                "date": "2016-07-04T14:00:00-04:00", 
+                "description": "A brief update from WBUR", 
+                "duration": 127, 
+                "provider": "WBUR", 
+                "rating": {
+                    "affiliations": [], 
+                    "channel": "npr", 
+                    "cohort": "C", 
+                    "duration": 127, 
+                    "elapsed": 0, 
+                    "mediaId": "200070:329|2016-07-04T14:00:00-0400|long", 
+                    "origin": "LOCALNC", 
+                    "rating": "START", 
+                    "timestamp": "2016-07-04T14:47:53-0400"
+                }, 
+                "rationale": "Your local news", 
+                "skippable": true, 
+                "title": "Local Newscast", 
+                "type": "audio", 
+                "uid": "200070:329|2016-07-04T14:00:00-0400|long"
+            }, 
+            "errors": [], 
+            "href": "https://api.npr.org/listening/v2/recommendations?channel=npr&sharedMediaId=200070:329|2016-07-04T14:00:00-0400|long", 
+            "items": [], 
+            "links": {
+                "audio": [
+                    {
+                        "content-type": "audio/aac", 
+                        "href": "http://cpa.ds.npr.org/newscasts/329/2016/07/329-news-2016-07-04T14-27-00.mp4"
+                    }
+                ], 
+                "recommendations": [
+                    {
+                        "content-type": "application/json", 
+                        "href": "https://api.npr.org/listening/v2/ratings?recommend=true&channel=npr&prevStories=1&queued=%5B%5D&flow=3"
+                    }
+                ]
+            }, 
+            "version": "1.0"
+        }, 
+        {
+            "attributes": {
+                "audioTitle": "\"I'm Not Black, I'm O.J.!\"", 
+                "date": "2016-06-29T14:02:00-04:00", 
+                "description": "For a long time, O.J. Simpson seemed to be running away from his race. \"I'm not black, I'm O.J.!\" he'd tell his friends. The he was charged with murder, and his defense team needed that jury to see O.J. as black. So, they had to get creative. Gene talks to Ezra Edelman, director of the new ESPN documentary \"OJ: Made in America.\"(A warning, today's episode has some racially charged language.)", 
+                "duration": 1185, 
+                "geofence": {
+                    "countries": [], 
+                    "restricted": false
+                }, 
+                "primary": true, 
+                "program": "Code Switch", 
+                "provider": "NPR", 
+                "rating": {
+                    "affiliations": [
+                        "510312"
+                    ], 
+                    "channel": "npr", 
+                    "cohort": "C", 
+                    "duration": 1185, 
+                    "elapsed": 0, 
+                    "mediaId": "483889238:484034723", 
+                    "origin": "RATED", 
+                    "rating": "START", 
+                    "timestamp": "2016-07-04T14:47:53-0400"
+                }, 
+                "rationale": "A show you like", 
+                "skippable": true, 
+                "title": "\"I'm Not Black, I'm O.J.!\"", 
+                "type": "audio", 
+                "uid": "483889238:484034723"
+            }, 
+            "errors": [], 
+            "href": "https://api.npr.org/listening/v2/recommendations?channel=npr&sharedMediaId=483889238:484034723", 
+            "items": [], 
+            "links": {
+                "audio": [
+                    {
+                        "content-type": "audio/mp3", 
+                        "href": "http://play.podtrac.com/npr-510312/pd.npr.org/anon.npr-mp3/npr/codeswitch/2016/06/20160629_codeswitch_oj.mp3?orgId=1&d=1185&p=510312&story=483889238&t=podcast&e=483889238&NPROne=true"
+                    }, 
+                    {
+                        "content-type": "audio/mp3", 
+                        "href": "http://play.podtrac.com/npr-510312/npr.mc.tritondigital.com/NPR_510312/media/anon.npr-mp3/npr/codeswitch/2016/06/20160629_codeswitch_oj.mp3?orgId=1&d=1185&p=510312&story=483889238&t=podcast&e=483889238&NPROne=true&dl=1", 
+                        "rel": "download"
+                    }, 
+                    {
+                        "content-type": "audio/x-ms-wax", 
+                        "href": "http://www.npr.org/templates/dmg/dmg_wmref_em.php?id=484034723&type=1&mtype=WM&orgId=1&d=1185&p=510312&story=483889238&t=podcast&e=483889238&NPROne=true"
+                    }, 
+                    {
+                        "content-type": "audio/aac", 
+                        "href": "http://pd.npr.org/npr-mp4/npr/codeswitch/2016/06/20160629_codeswitch_oj.mp4?orgId=1&d=1185&p=510312&story=483889238&t=podcast&e=483889238&NPROne=true"
+                    }, 
+                    {
+                        "content-type": "application/vnd.apple.mpegurl", 
+                        "href": "http://hls.npr.org/nprhls//npr/codeswitch/2016/06/20160629_codeswitch_oj/master.m3u8?NPROne=true"
+                    }
+                ], 
+                "image": [
+                    {
+                        "content-type": "image/png", 
+                        "href": "https://media.npr.org/assets/img/2016/05/09/codeswitch_itunes2_sq-cc90dbc5dcdff7b93734f2a1a29864cb77742948.png?s=600", 
+                        "image": "477413324", 
+                        "provider": "NPR", 
+                        "rel": "logo_square"
+                    }, 
+                    {
+                        "content-type": "image/png", 
+                        "href": "https://media.npr.org/assets/img/2016/05/09/codeswitch_itunes2_wide-f96c23f0bb87637d55d838d73b3717b8c1aa8c17.png?s=600", 
+                        "image": "477413324", 
+                        "provider": "NPR", 
+                        "rel": "logo_wide"
+                    }
+                ], 
+                "onramps": [
+                    {
+                        "content-type": "text/html", 
+                        "href": "http://one.npr.org/i/483889238:484034723"
+                    }
+                ], 
+                "recommendations": [
+                    {
+                        "content-type": "application/json", 
+                        "href": "https://api.npr.org/listening/v2/ratings?recommend=true&channel=npr&prevStories=1&queued=%5B%5D&flow=5"
+                    }
+                ], 
+                "up": [
+                    {
+                        "content-type": "text/html", 
+                        "href": "http://www.npr.org/podcasts/510312/codeswitch"
+                    }, 
+                    {
+                        "content-type": "application/json", 
+                        "href": "https://api.npr.org/listening/v2/aggregation/510312/recommendations"
+                    }
+                ], 
+                "web": [
+                    {
+                        "content-type": "text/html", 
+                        "href": "http://www.npr.org/podcasts/510312/codeswitch"
+                    }, 
+                    {
+                        "content-type": "application/xml", 
+                        "href": "http://api.npr.org/query?id=483889238&profileTypeId=15&apiKey=MDAzMzQ2MjAyMDEyMzk4MTU1MDg3ZmM3MQ010"
+                    }, 
+                    {
+                        "content-type": "text/html", 
+                        "href": "www.npr.org/player/embed/483889238/484034723", 
+                        "rel": "embed"
+                    }
+                ]
+            }, 
+            "version": "1.0"
+        }
+    ], 
+    "links": {}, 
+    "version": "1.0"
+}

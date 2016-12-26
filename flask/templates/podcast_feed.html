@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}{{ podcasts.title }}{% endblock %}
+{% block bodyClass %}feed{% endblock %}
+{% block content %}
+<ul>
+{% for item in podcasts['items'] %}
+  <li><a href="/podcast/play/{{ item.guid|urlencode }}?duration={{ item.duration }}&durationSecs={{ item.durationSecs }}&title={{ item.title|urlencode }}">{{ item.title }}</a></li>
+{% endfor %}
+</ul>
+{% endblock %}

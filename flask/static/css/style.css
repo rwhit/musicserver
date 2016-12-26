@@ -73,4 +73,16 @@ input[range]:focus {
 #coverArt { float:left; width:100px; margin: 5px; margin-top:0; }
 .songInfo { margin:5px; font-size:20px; }
 .songInfo span { font-weight:bold; }
+/* /////////////// */
+/*  Podcasts       */
+/* /////////////// */
+#feedContainer { display: inline-block; }
+.title { text-align: center; }
+#feeds .up { height: 20px; float:left; margin-top:8px; margin-right: 5px; }
+#feeds .down { height: 20px; float:right; margin-top:8px ; margin-left: 5px; }
+.podcast ul { display:inline-block; margin:0; background-color:#00bc5e; list-style:none; padding:0; max-height:200px; border:0; border-top:1px solid #99d9a5; }
+#feeds li { cursor: pointer; height:45px; border:1px solid #99d9a5; border-top:0; text-align:center; line-height:45px; padding: 0 20px; overflow-x:hidden; text-overflow:ellipsis; white-space:nowrap;}
+/* ////////// */
+/* Admin      */
+/* ////////// */
 

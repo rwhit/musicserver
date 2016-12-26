@@ -1,0 +1,32 @@
+from recomendation response (resp = json.load(body)), 
+
+items is top level array (0 based)
+
+to get audio links:
+
+  resp['items'][1]['links']['audio']
+
+  [{u'href': u'http://public.npr.org/anon.npr-mp3/npr/newscasts/2016/07/04/newscastShort140626.mp3', u'content-type': u'audio/mp3'},
+   {u'href': u'http://public.npr.org/npr-mp4/npr/newscasts/2016/07/04/newscastShort140626.mp4', u'content-type': u'audio/aac'},
+   {u'href': u'http://hls.npr.org/nprhls/npr/newscasts/2016/07/04/newscastShort140626/master.m3u8', u'content-type': u'application/vnd.apple.mpegurl'}]
+
+
+attributes (including description, title):
+
+  resp['items'][1]['attributes']
+
+  {u'rating':
+      {u'origin': u'HRNCWKND1', u'cohort': u'C', u'mediaId': u'200070:1|2016-07-04T14:00:00-0400|short', u'rating': u'START', u'timestamp': u'2016-07-04T14:47:53-0400', u'elapsed': 0, u'affiliations': [], u'duration': 179, u'channel': u'npr'},
+   u'description':
+      u'A brief update',
+      u'title': u'National Newscast',
+      u'duration': 179,
+      u'rationale': u'',
+      u'provider': u'NPR',
+      u'date': u'2016-07-04T14:00:00-04:00',
+      u'type': u'audio',
+      u'skippable': True,
+      u'uid': u'200070:1|2016-07-04T14:00:00-0400|short'}
+
+  
+

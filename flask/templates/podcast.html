@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Podcast{% endblock %}
+{% block bodyClass %}podcast{% endblock %}
+{% block content %}
+<div id="feedContainer">
+<div class="title">Feeds</div>
+<ul id="feeds">
+{% for feed in feeds %}
+  <li onClick="window.location='/podcast/feed/{{feed[1]|urlencode}}'" data-url="{{feed[2]}}">
+  <div class="feed">
+    <img class="up" src="/static/svg/pitr_green_arrows_set_1.svg" onclick="moveUp(event)">
+    {{ feed[0] }}
+    <img class="down" src="/static/svg/pitr_red_arrows_set_5.svg" onclick="moveDown(event)">
+  </div>
+  </li>
+{% endfor %}
+</ul>
+</div>
+{% endblock %}
+{% block js %}
+  <script type="text/javascript" src="/static/js/socket.io.min.js"></script>
+  <script type="text/javascript" src="/static/js/jquery-2.1.1.min.js"></script>
+  <script type="text/javascript" src="/static/js/feed.js"></script>
+  <script type="text/javascript" charset="utf-8">
+    $(document).ready(function() {
+      socket = io.connect('http://' + document.domain + ':' + location.port + "/podcastsocket");
+      initHandlers();
+    });
+  </script>
+{% endblock %}

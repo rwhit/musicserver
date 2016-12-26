@@ -1,6 +1,6 @@
 user = example@gmail.com
 password = example
-tls_fingerprint = 2D0AFDAFA16F4B5C0A43F3CB1D4752F9535507C0
+tls_fingerprint = FC2E6AF49FC63AEDAD1078DC22D1185B809E7534
 audio_quality = high
 event_command = $HOME/.config/pianobar/eventcmd.py
 fifo = $HOME/.config/pianobar/ctl
