@@ -4,6 +4,7 @@ musicserver
 Quick flask based music server for use on a rasberry pi
 
 #Dependencies
+    apt-get clean
     apt-get update
     apt-get install build-essential libao-dev libmad0-dev libfaad-dev libgnutls-dev libjson0-dev git libgcrypt11-dev yasm make pkg-config python-dev mplayer postgresql libpq-dev libcap2-bin lsof
 ##Install ffmpeg from source
