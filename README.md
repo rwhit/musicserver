@@ -25,8 +25,7 @@ Quick flask based music server for use on a rasberry pi
     ./get-pip.py
     pip install flask flask-socketio requests eventlet psycopg2
 # Allow python to bind to port 80 (if non-root user)
-    readlink -f `which python`
-    sudo setcap 'cap_net_bind_service=+ep' /path/to/python
+    sudo setcap 'cap_net_bind_service=+ep' $(readlink -f $(which python))
 # install json_91 (back port of json support) from source
     # need pg dev package to build extensions
     sudo apg-get install postgresql-server-dev-9.1
@@ -50,3 +49,4 @@ Quick flask based music server for use on a rasberry pi
     chmod a+x server.py
     ./server.py
 
+# websocket io library from https://cdn.socket.io/socket.io-1.4.5.js

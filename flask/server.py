@@ -383,5 +383,5 @@ if __name__ == '__main__':
     logging.basicConfig(format=FORMAT)
     logging.info('starting server')
     # disable flash policy server
-    socketio.run(app, port=PORT, host=HOST, policy_server=False)
+    socketio.run(app, port=PORT, host=HOST)
     broadcast_admin("adminResult", {"result":"server restarted"})
