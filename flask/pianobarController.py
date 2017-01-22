@@ -70,12 +70,13 @@ class PianobarController(BaseController):
        extra = min(30, self.duration/10)
        maxSecs = self.duration + extra
        cmd='sleep {0} && {1}/eventcmd.py RESTART'.format(maxSecs, self.baseDir)
-       self.monitorProcc = subprocess.Popen([cmd],shell=True,close_fds=True)
+       self.monitorProc = subprocess.Popen([cmd],shell=True,close_fds=True)
 
     def _stopMonitor(self):
        logging.debug('_stopMonitor')
        if(self.monitorProc):
            self.monitorProc.kill()
+           self.monitorProc = None
 
     def _toggleMonitorPause(self):
        logging.debug('_toggleMonitor - paused: {0}'.format(self.is_paused()))
