@@ -1,0 +1,15 @@
+To deal w/Christa's sucky internet
+
+- initially, state = IDLE
+- songstart, duration => state = PLAYING
+- stop => state = IDLE
+
+on (re)enter to PLAYING
+kill current timer (by process group)
+start timer on songstart, to expire at duration + min(30s, duration/10)
+  start new process group, sleep $expire && send restart pandora message
+if no new message before that, restart pianobar
+
+Also, on any interaction in the PLAYING state, check for existence of pandora process and that it has open TCP to pandora mediaserver:
+
+   lsof -Pc pianobar | grep -c mediaserver.*pandora

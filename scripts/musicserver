@@ -1,4 +1,7 @@
 #!/bin/bash
+export PATH=$PATH:/usr/local/bin
+echo $PATH
+which pianobar
 home=$(dirname $0)
 source $home/config
 cd $MUSIC_BASE/flask
