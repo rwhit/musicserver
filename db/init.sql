@@ -53,4 +53,39 @@ create table app_state (
   primary key(namespace, key)
 );
 
-  
+-- specifically for podcasts, but general purpose
+create table cache_status (
+  state int,
+  name text,
+
+  primary key(state)
+);
+insert into cache_status (state, name)
+  values
+    (0, 'init'),
+    (1, 'downloading'),
+    (2, 'complete'),
+    (3, 'error')
+    (4, 'expired') -- removed from disk but (possibly) still in feed
+;
+create table file_cache (
+  id SERIAL,
+  url text not null,
+  path text,
+  created timestamp with time zone not null default now(),
+  last_read timestamp with time zone,
+  size int,
+  state int not null default 0,
+  attempts int not null default 0,
+  -- how many download attempts?
+  source_group text not null, -- e.g. rss feed, to aid w/expiration
+  present_at_source boolean not null default 't',
+
+  -- add checks when state == 2 - path & size cannot be null
+  primary key(id),
+  unique(url),
+  unique(path),
+
+  foreign key (state) references cache_status (state)
+);
+

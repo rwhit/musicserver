@@ -1,4 +1,10 @@
 #!/bin/bash
+init=0
+if [ "$1" == '--init' ]
+then
+  init=1
+  pidfile=$2
+fi
 home=$(dirname $0)
 source $home/config
 cd $MUSIC_BASE/flask
@@ -9,12 +15,20 @@ do
   [[ -f $f ]] && mv $f $f.$(date +%Y-%m-%d_%H-%M)
 done
 cd ..
-cmd="python $MUSIC_BASE/flask/server.py"
+cmd="/usr/bin/python $MUSIC_BASE/flask/server.py"
 # kill old instance, if any
 oldpid=$(pgrep -f "$cmd")
 [[ ! -z $oldpid ]] && { $MUSIC_BASE/scripts/killtree.sh $oldpid; lsof -P | grep LISTEN | grep ":80"; }
-nohup $cmd >logs/server.out 2>logs/server.err &
 cd logs
 # cleanup, zip old logs
 find . -type f -mtime +60 | xargs -r rm -f
 find . -type f \! \( -name \*.gz -o -name \*.out -o -name \*.err \) | xargs -r gzip
+cd ..
+nohup $cmd >logs/server.out 2>logs/server.err &
+if [ ! -z "$pidfile" ]
+then
+  id
+  ls -l $pidfile
+  cat $pidfile
+  echo $! >$pidfile
+fi

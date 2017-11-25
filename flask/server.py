@@ -1,12 +1,16 @@
 #!/usr/bin/env python
 
+import logging
+# do this first so we get control of root format
+FORMAT = '%(asctime)-15s:%(name)s:%(levelname)s:%(message)s:%(funcName)s:%(module)s:%(lineno)d'
+logging.basicConfig(level=logging.DEBUG, format=FORMAT)
+
 from flask import Flask, render_template, request, url_for, redirect
 from flask_socketio import SocketIO, emit
 from pianobarController import PianobarController
 from podcastController import PodcastController
 from radioController import RadioController
 from subprocess import check_output, call
-import logging
 import sys
 import os
 import urllib
@@ -16,8 +20,6 @@ import psycopg2.extras
 import secrets as SECRETS
 import time
 import json
-
-logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'super secry'
@@ -60,6 +62,7 @@ def pandora_message(message):
         broadcast_pandora("onpause", {"paused":PCONTROLLER.is_paused()})
     return "OK"
 
+# this is wired to pianbar via /root/.pianobar/config/eventcmd.py
 @app.route("/pianobar/<action>", methods=["POST"])
 def pianobar_message(action):
     data = request.json
@@ -371,7 +374,7 @@ def admin_message(message):
      try:
        with open(os.devnull,'r') as devNull:
          output="/tmp/restart.out"
-         result=call(['( sleep 1;../scripts/musicserver >' + output + ' 2>&1 ) &'], shell=True, stdin=devNull, close_fds=True)
+         result=call(['( sleep 1;sudo service musicserver restart >' + output + ' 2>&1 ) &'], shell=True, stdin=devNull, close_fds=True)
      except:
        result="Exception: " + str(sys.exc_info())
    logging.debug("admin result" + str(result))

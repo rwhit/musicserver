@@ -1,29 +1,27 @@
 #! /bin/sh
 ### BEGIN INIT INFO
-# Provides:          skeleton
-# Required-Start:    $remote_fs $syslog
-# Required-Stop:     $remote_fs $syslog
+# Provides:          musicserver
+# Required-Start:    $syslog
+# Required-Stop:     $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: Example initscript
-# Description:       This file should be used to construct scripts to be
-#                    placed in /etc/init.d.
+# Short-Description: manage musicserver
+# Description:       Presents a web ui to manage playing various audio over the rc output.
 ### END INIT INFO
 
-# Author: Foo Bar <foobar@baz.org>
-#
-# Please remove the "Author" lines above and replace them
-# with your own name if you copy and modify this script.
+# Author: Robin Whitworth <robin.whitworth@gmail.com>
 
 # Do NOT "set -e"
 
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
-PATH=/sbin:/usr/sbin:/bin:/usr/bin
-DESC="Description of the service"
-NAME=daemonexecutablename
-DAEMON=/usr/sbin/$NAME
-DAEMON_ARGS="--options args"
+#PATH=/sbin:/usr/sbin:/bin:/usr/bin
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/bin:/usr/bin:/sbin
+DESC="Music server"
+NAME=musicserver
+INTERPRETER=/usr/bin/python
+DAEMON=/home/pi/musicserver/scripts/$NAME
 PIDFILE=/var/run/$NAME.pid
+DAEMON_ARGS="--init $PIDFILE"
 SCRIPTNAME=/etc/init.d/$NAME
 
 # Exit if the package is not installed
@@ -49,9 +47,11 @@ do_start()
 	#   0 if daemon has been started
 	#   1 if daemon was already running
 	#   2 if daemon could not be started
-	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON --test > /dev/null \
+	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $INTERPRETER --startas $DAEMON --test > /dev/null \
 		|| return 1
-	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON -- \
+        touch $PIDFILE
+        chown pi:pi $PIDFILE
+	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $INTERPRETER --startas $DAEMON --chuid pi:pi -- \
 		$DAEMON_ARGS \
 		|| return 2
 	# Add code here, if necessary, that waits for the process to be ready
@@ -69,7 +69,7 @@ do_stop()
 	#   1 if daemon was already stopped
 	#   2 if daemon could not be stopped
 	#   other if a failure occurred
-	start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE --name $NAME
+	start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE --exec $INTERPRETER
 	RETVAL="$?"
 	[ "$RETVAL" = 2 ] && return 2
 	# Wait for children to finish too if this is a daemon that forks
@@ -134,6 +134,7 @@ case "$1" in
 	#
 	log_daemon_msg "Restarting $DESC" "$NAME"
 	do_stop
+        sleep 1 # make sure socket released
 	case "$?" in
 	  0|1)
 		do_start
