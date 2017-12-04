@@ -12,14 +12,14 @@ class PianobarController(BaseController):
 
     def check_status(self):
         try:
-            subprocess.check_call(['ps', '-C', '/usr/local/bin/pianobar'])
+            subprocess.check_call(['ps', '-C', '/usr/bin/pianobar'])
         except subprocess.CalledProcessError:
             #Pianobar is not running
             self.volume = 5
             self.paused = False
             self.elapsedTime = 0
             self.startTime = time.time()
-            subprocess.Popen(['/usr/local/bin/pianobar'], close_fds=True)
+            subprocess.Popen(['/usr/bin/pianobar'], close_fds=True)
 
     def set_latest(self, action, data):
         if action == "songstart":

@@ -65,7 +65,7 @@ insert into cache_status (state, name)
     (0, 'init'),
     (1, 'downloading'),
     (2, 'complete'),
-    (3, 'error')
+    (3, 'error'),
     (4, 'expired') -- removed from disk but (possibly) still in feed
 ;
 create table file_cache (
