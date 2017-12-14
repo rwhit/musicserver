@@ -10,6 +10,7 @@ from flask_socketio import SocketIO, emit
 from pianobarController import PianobarController
 from podcastController import PodcastController
 from radioController import RadioController
+from albumController import AlbumController
 from subprocess import check_output, call
 import sys
 import os
@@ -154,12 +155,25 @@ def radio_message(message):
          logging.warn('Unknown radiosocket message: ' + mesage)
     return "OK"
 
+ALBUMS = None
+
+def getAlbumController():
+    global ALBUMS
+    if not ALBUMS:
+        ALBUMS = AlbumController()
+    return ALBUMS
+
+@app.route("/albums/")
+def albums():
+    return render_template("albums.html",
+                albums=getAlbumController().get_albums())
+
 NPR_STATE_NEED_AUTH=0
 NPR_STATE_NEED_TOKEN=1
 NPR_STATE_AUTHORIZED=2
 
 SCHEME_AND_HOST = 'http://rasp-music'
-@app.route("/nprOne")
+@app.route("/nprOne/")
 def nprOne():
   # see nprOne/flow.txt
   state=getNprState(request)

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Albums{% endblock %}
+{% block bodyClass %}albums{% endblock %}
+{% block content %}
+<div id="albumsContainer">
+<div class="title">Albums</div>
+<ul id="albums">
+{% for album in albums %}
+  <li onClick="window.location='/albums/album/{{album[3]}}'" data-url="{{album[3]}}">
+  <div class="album">
+	  {{ album[0] }} {{ album[1] }}
+  </div>
+  </li>
+{% endfor %}
+</ul>
+</div>
+{% endblock %}
+{% block js %}
+  <script type="text/javascript" src="/static/js/socket.io.min.js"></script>
+  <script type="text/javascript" src="/static/js/jquery-2.1.1.min.js"></script>
+  <script type="text/javascript" src="/static/js/albums.js"></script>
+  <script type="text/javascript" charset="utf-8">
+    $(document).ready(function() {
+      socket = io.connect('http://' + document.domain + ':' + location.port + "/socket");
+      initHandlers();
+    });
+  </script>
+{% endblock %}

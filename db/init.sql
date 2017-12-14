@@ -89,3 +89,16 @@ create table file_cache (
   foreign key (state) references cache_status (state)
 );
 
+-- album support
+create table albums (
+  id SERIAL,
+  title text,
+  artist text,
+  path text,
+
+  primary key (id),
+  unique(title, artist),
+  unique(path)
+);
+
+create index idx_albums_artist on albums(artist);
