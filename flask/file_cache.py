@@ -21,7 +21,7 @@ class FileCache:
     self._getCacheMeta()
     # defaults
     self.maxAgeInDays = 90
-    self.minFreePercent = 50
+    self.minFreePercent = 10
     self.maxCachedBytes = 10*1024*1024*1024 # 10GB
     self.maxAttempts = 3
 
@@ -156,6 +156,9 @@ class FileCache:
     while (freePct < self.minFreePercent or bytesUsed > self.maxCachedBytes):
       # remove next file
       meta = self._getNextToPurge()
+      if(not meta):
+        logging.debug('could not find any to purge in _makeRoomFor')
+        return
       logging.debug('purging ' + str(meta))
       self._deleteEntry(meta)
       (freePct, bytesUsed) = self._getFreeSpace(newBytes)
@@ -165,6 +168,8 @@ class FileCache:
     # TODO better sort
     # for now, just go with oldest
     byCreated = sorted(self.cache.values(), key = lambda meta: meta['created'])
+    if(len(byCreated) == 0):
+      return None
     return byCreated[0]
 
   def _createCacheRecord(self, url, group):
@@ -196,6 +201,7 @@ class FileCache:
     self.cache = {}
     self._executeSql('select url, state, size, last_read, attempts, path, created from file_cache', None,
       self._cacheRow)
+    logging.debug('loaded {} urls from cache'.format(len(self.cache)))
 
   def _executeSql(self, sql, params, rowFunc=None):
     with psycopg2.connect(self.connParams) as conn, conn.cursor() as cursor:

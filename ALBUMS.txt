@@ -1,0 +1,33 @@
+objects:
+  - track - single audio file
+    id
+    name
+    artist_id
+    path (unique)
+    album (can be null)
+  - playlist - order list of tracks and/or playlists
+    - id
+    - name
+    - type (manual, album)
+  - playlist entry
+    - id
+    - track (can be null)
+    - playlist (can be null)
+      # (track + playlist cannot be null)
+    - order (id,order is unique)
+  - album
+    - playlist # type=album
+  - artist
+    - id
+    - name
+  - ensemble
+    - id name
+  - ensemble_member
+    - ensemble_id
+    - artist_id
+  - tag
+    - id
+    - value
+  - album_tags
+    - tag_id
+    - album_id

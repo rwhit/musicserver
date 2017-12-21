@@ -90,15 +90,78 @@ create table file_cache (
 );
 
 -- album support
-create table albums (
+create table artist (
   id SERIAL,
-  title text,
-  artist text,
-  path text,
+  name text,
 
   primary key (id),
-  unique(title, artist),
-  unique(path)
+  unique(name)
 );
 
-create index idx_albums_artist on albums(artist);
+create table playlist (
+  id SERIAL,
+  name text not null,
+  type text not null check (type in ('manual', 'album')),
+  duration_secs integer,
+  duration_is_estimate boolean,
+
+  primary key (id),
+  unique(name)
+);
+
+-- should rename something like "collection"?
+create table album (
+  id SERIAL,
+  title text not null,
+  artist_id integer not null,
+  playlist_id integer,
+  path text not null,
+
+  primary key (id),
+  unique(title, artist_id),
+  unique(path),
+
+  foreign key (artist_id) references artist(id),
+  foreign key (playlist_id) references playlist(id)
+);
+create index idx_albums_artist on album(artist_id);
+
+-- to populate (almost - and doesn't handle artist_id):
+-- ( echo "insert into albums(title, artist, path) values"; ls /data/dobby/ripped-cds/ |
+--     sed 's/ - /|/' | awk -F '|' "{print \"('\" \$2 \"', '\" \$1 \"', '\" \$1 \" - \" \$2 \"'),\";}" |
+--     sed -e "s/' /'/g" -e "s/ '/'/g" -e "s/'s/''s/g" )
+
+create table track (
+  id SERIAL,
+  title text not null,
+  artist_id integer not null,
+  album_id integer not null,
+  path text not null,
+  duration_secs integer,
+  duration_is_estimate boolean,
+
+  primary key (id),
+  unique(path, album_id),
+  unique(title, artist_id),
+
+  foreign key (artist_id) references artist(id),
+  foreign key (album_id) references album(id)
+);
+comment on column track.path is 'relative to album.path';
+
+create table playlist_entry (
+  playlist_id integer,
+  entry_order integer check (entry_order >= 0),
+  track_id integer,
+  child_playlist_id integer,
+
+  primary key (playlist_id, entry_order),
+
+  check (coalesce(track_id, child_playlist_id) is not null),
+
+  foreign key (playlist_id) references playlist(id),
+  foreign key (track_id) references track(id),
+  foreign key (child_playlist_id) references playlist(id)
+);
+
+

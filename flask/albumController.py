@@ -6,16 +6,18 @@ psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
 
 class AlbumController(BaseController):
-    def __init__(self):
+    def __init__(self, config, connFactory):
         BaseController.__init__(self)
+        self.config = config
+        self.connFactory = connFactory
 
     def get_albums(self):
         albums = []
         conn = None
         try:
-            conn = psycopg2.connect('dbname=pi user=pi')
+            conn = self.connFactory.getConnection()
             with conn.cursor() as cursor:
-                cursor.execute('select title, artist, path, id from albums order by title')
+                cursor.execute('select title, artist, path, id from album order by title')
                 albumData = cursor.fetchone()
                 while albumData:
                     albums.append(albumData)

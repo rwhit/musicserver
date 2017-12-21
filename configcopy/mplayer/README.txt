@@ -1,0 +1,1 @@
+Destination: ~/.mplayer/config

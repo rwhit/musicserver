@@ -24,3 +24,10 @@ Quick flask based music server for use on a rasberry pi
     ./install.sh
 
 # websocket io library from https://cdn.socket.io/socket.io-1.4.5.js
+
+
+=====================
+python3
+
+sudo apt-get install python3-pip
+pip3 install psycopg2
