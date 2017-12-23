@@ -10,25 +10,38 @@ import subprocess
 sys.path.append('/home/pi/musicserver/flask')
 from musicServerConfig import MusicServerConfig as Config
 from connFactory import ConnFactory
+from psycopg2.extras import execute_values
+from psycopg2 import IntegrityError
+import argparse
 
 class NotAlbum(Exception):
   pass
 
+class DuplicateAlbum(Exception):
+  pass
+
 class Importer:
-  def __init__(self, config):
+  def __init__(self, args, config):
+    self.args = args
     self.config = config
     self.conn = ConnFactory(config).getConnection()
+    self.skipDupes = False
 
   def close(self):
     self.conn.close()
 
-  def processDir(self, topDir):
-    for dir, subdirs, files in os.walk(topDir):
+  def processDir(self):
+    for dir, subdirs, files in os.walk(self.args.topDir):
       logging.debug('processing %s', os.path.basename(dir))
       try:
         self.importAlbum(dir, files)
       except NotAlbum: 
         logging.info('%s does not appear to be an album, skipping', dir)
+      except DuplicateAlbum:
+        if(self.args.skipDupes):
+            logging.info('skipping duplicate album in %s', dir)
+        else:
+            raise
 
   def importAlbum(self, dir, files):
     try:
@@ -37,7 +50,10 @@ class Importer:
       raise NotAlbum(dir) from ve
     logging.debug("\nartist: %s\ntitle: %s", artist, title)
     artistId = self.ensureArtist(artist)
-    (albumId, playlistId) = self.newAlbum(artistId, title, dir)
+    try:
+      (albumId, playlistId) = self.newAlbum(artistId, title, dir)
+    except IntegrityError as pie:
+        raise DuplicateAlbum from pie
     # lists of (trackId,duration)
     providedPlaylist = None
     playlistEntries = []
@@ -48,7 +64,10 @@ class Importer:
       else:
         (artist,title,duration) = self.parseMetaFromFilename(filename)
         playlistEntries.append(self.ensureTrack(albumId, filename, artist, title, duration))
-    self.importPlaylistEntries(playlistId, playlistEntries, providedPlaylist)
+    # TODO - consider just doing two passes above
+    if(providedPlaylist):
+      playlistEntries = providedPlaylist
+    self.importPlaylistEntries(playlistId, playlistEntries)
 
   def ensureArtist(self, artist):
     logging.info("ensureArtist {}".format(artist))
@@ -103,9 +122,9 @@ class Importer:
         for line in fh:
             if(line[0] == '#'):
                 meta = self.parseMetaComment(line)
-            elif(not meta):
-                meta = self.parseMetaFromFilename(line)
             else:
+                if(not meta):
+                    meta = self.parseMetaFromFilename(line)
                 logging.debug('meta: %s', str(meta))
                 (artist,title,duration) = meta
                 logging.debug('unpacked: %s,%s,%s', artist, title, str(duration))
@@ -128,6 +147,7 @@ class Importer:
     logging.debug("%s -> (%s,%s,%s)", line, artist,title,duration)
     return (artist,title.rstrip(),int(duration))
 
+  # return (artist, title, duration)
   def parseMetaFromFilename(self, line):
     logging.info("parseMetaFromFilename(%s)", line)
     base = os.path.basename(line).rsplit('.', maxsplit=2)[0]
@@ -137,9 +157,14 @@ class Importer:
     else:
       return(parts[0], parts[1], None)
 
-  def importPlaylistEntries(self, playlistId, playlistEntries, providedPlaylistEntries):
-    logging.error("Implement importPlaylistEntries(%d,%s,%s)", playlistId, str(playlistEntries), str(providedPlaylistEntries))
-    return 
+  def importPlaylistEntries(self, playlistId, playlistEntries):
+    logging.info("importPlaylistEntries(%d,%s)", playlistId, str(playlistEntries))
+    def txn(cur):
+      # TODO sum up duration and update playlist as well
+      values = [ (playlistId, i, trackTuple[0]) for i, trackTuple in enumerate(playlistEntries) ]
+      logging.debug("values: %s", values)
+      execute_values(cur, 'insert into playlist_entry (playlist_id, entry_order, track_id) values %s', values)
+    return self.simpleTransaction(txn)
 
   def isPlaylist(self, filename):
     cp = subprocess.run(['file',filename], stdout=subprocess.PIPE)
@@ -149,11 +174,14 @@ class Importer:
     return False
 
 def main():
-  topDir = sys.argv[1]
+  parser = argparse.ArgumentParser(description='Import albums')
+  parser.add_argument('-s', '--skip-dupes', action='store_true', dest='skipDupes')
+  parser.add_argument('topDir')
+  args = parser.parse_args()
   config = Config()
-  importer = Importer(config)
+  importer = Importer(args, config)
   try:
-    importer.processDir(topDir)
+    importer.processDir()
   finally:
     importer.close()
 
