@@ -18,7 +18,7 @@
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/bin:/usr/bin:/sbin
 DESC="Music server"
 NAME=musicserver
-INTERPRETER=/usr/bin/python
+INTERPRETER=/usr/bin/python3
 DAEMON=/home/pi/musicserver/scripts/$NAME
 PIDFILE=/var/run/$NAME.pid
 DAEMON_ARGS="--init $PIDFILE"

@@ -1,6 +1,6 @@
-from string import split
-from urllib2 import urlopen,unquote
-from urllib import urlretrieve
+from urllib.request import urlopen
+from urllib.parse import unquote
+from urllib.request import urlretrieve
 from mediaplayerController import get_mediaplayer
 from baseController import BaseController
 from file_cache import FileCache
@@ -18,7 +18,7 @@ class PodcastController(BaseController):
         self.paused = True
         self.elapsedTime = 0
         self.startTime = time.time()
-	self.cache = FileCache('dbname=pi user=pi', '/data/musicserver/cache')
+        self.cache = FileCache('dbname=pi user=pi', '/data/musicserver/cache')
 
     def get_feeds(self):
         feeds = []
@@ -84,10 +84,10 @@ class PodcastController(BaseController):
         fd = None
         try:
           cached = self.cache.getUrl(url)
-	  if(cached):
+          if(cached):
             tmpFile = cached['path']
             logging.info("cached: " + tmpFile)
-	  else:
+          else:
             (fd,tmpFile) = mkstemp()
             logging.info("downloading to: " + tmpFile)
             #urlretrieve(url,tmpFile)
@@ -137,7 +137,7 @@ class PodcastController(BaseController):
     # override
     def pause(self):
         self.write('pause')
-	BaseController.pause(self)
+        BaseController.pause(self)
 
     # write straight to mplayer fifo
     def write(self, message):

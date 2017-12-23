@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import sys
 import logging
 import psycopg2
@@ -33,7 +32,9 @@ class FileCache:
 
   def expire(self):
     logging.info('expiring items older than {} days'.format(self.maxAgeInDays))
-    map(lambda meta: self._expireOne(meta), self.cache.values())
+    #list(map(lambda meta: self._expireOne(meta), list(self.cache.values())))
+    for meta in list(self.cache.values()):
+        self._expireOne(meta)
        
   def _expireOne(self, meta):
     if(getAgeInDays(meta) > self.maxAgeInDays):
@@ -80,13 +81,13 @@ class FileCache:
     else:
       (pathDir,filename) = self._createCacheRecord(url, group)
       if(not os.access(pathDir, os.W_OK)):
-        os.makedirs(pathDir, 0755)
+        os.makedirs(pathDir, 0o755)
       fullpath = '{}/{}'.format(pathDir,filename)
       attempts = 0
     logging.info("fetching content-length")
     with requests.head(url, allow_redirects=True) as r:
       if(r.status_code == 200):
-	expectedSize = int(r.headers['content-length'])
+        expectedSize = int(r.headers['content-length'])
     self._makeRoomFor(expectedSize)
     logging.info("fetching content")
     self._executeSql('UPDATE file_cache set state = %s where url = %s',[ST_DOWNLOADING, url])
@@ -94,7 +95,7 @@ class FileCache:
     try:
       with requests.get(url, allow_redirects=True, stream=True) as r:
         if(r.status_code == 200):
-	   expectedSize = int(r.headers['content-length'])
+           expectedSize = int(r.headers['content-length'])
            with open(fullpath, 'wb') as f:
              chunks=0
              total=0
@@ -167,7 +168,7 @@ class FileCache:
     # TODO only sort once (when do we need to re-sort?)
     # TODO better sort
     # for now, just go with oldest
-    byCreated = sorted(self.cache.values(), key = lambda meta: meta['created'])
+    byCreated = sorted(list(self.cache.values()), key = lambda meta: meta['created'])
     if(len(byCreated) == 0):
       return None
     return byCreated[0]

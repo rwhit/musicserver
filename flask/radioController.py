@@ -35,9 +35,9 @@ class RadioController(BaseController):
     # override
     def pause(self):
         self.write('pause')
-	BaseController.pause(self)
+        BaseController.pause(self)
 
     # write straight to mplayer fifo
     def write(self, message):
         get_mediaplayer().write(message)
-                
+

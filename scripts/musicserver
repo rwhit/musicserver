@@ -15,7 +15,7 @@ do
   [[ -f $f ]] && mv $f $f.$(date +%Y-%m-%d_%H-%M)
 done
 cd ..
-cmd="/usr/bin/python $MUSIC_BASE/flask/server.py"
+cmd="/usr/bin/python3 $MUSIC_BASE/flask/server.py"
 # kill old instance, if any
 oldpid=$(pgrep -f "$cmd")
 [[ ! -z $oldpid ]] && { $MUSIC_BASE/scripts/killtree.sh $oldpid; lsof -P | grep LISTEN | grep ":80"; }

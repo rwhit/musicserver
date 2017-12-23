@@ -1,4 +1,3 @@
-# see if we can make this work in python2 & 3 - our exception handler is python3 only!
 from connFactory import ConnFactory
 
 GLOBAL_CONFIG_DBNAMESPACE = 'global_config'

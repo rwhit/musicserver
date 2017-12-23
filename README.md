@@ -12,10 +12,10 @@ Quick flask based music server for use on a rasberry pi
     vim /usr/share/alsa/alsa.conf
     # pcm.front cards.pcm.front => pcm.front cards.pcm.default
 # Python dependencies
-    sudo apt-get install python-pip
-    sudo pip install flask flask-socketio requests eventlet psycopg2
+    sudo apt-get install python3-pip
+    sudo pip3 install flask flask-socketio requests eventlet psycopg2
 # Allow python to bind to port 80 (if non-root user)
-    sudo setcap 'cap_net_bind_service=+ep' $(readlink -f $(which python))
+    sudo setcap 'cap_net_bind_service=+ep' $(readlink -f $(which python3))
 # Setup db schema
     cd db
     ./setup.sh
@@ -25,9 +25,3 @@ Quick flask based music server for use on a rasberry pi
 
 # websocket io library from https://cdn.socket.io/socket.io-1.4.5.js
 
-
-=====================
-python3
-
-sudo apt-get install python3-pip
-pip3 install psycopg2

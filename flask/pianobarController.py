@@ -7,7 +7,7 @@ class PianobarController(BaseController):
     def __init__(self):
         BaseController.__init__(self)
         self.check_status()
-        self.writer = open(os.environ["HOME"] + "/.config/pianobar/ctl", "a")
+        self.writer = open(os.environ["HOME"] + "/.config/pianobar/ctl", "w")
         self.latest = ""
 
     def check_status(self):

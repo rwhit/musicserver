@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import logging
 FORMAT = '%(asctime)-15s:%(name)s:%(levelname)s:%(message)s:%(funcName)s:%(module)s:%(lineno)d'
 logging.basicConfig(level=logging.DEBUG, format=FORMAT)
@@ -25,9 +25,9 @@ def main():
 
   pc = PC()
   cache = FileCache(connParams, cacheRoot)
-  logging.info('pre-expire size: {}'.format(len(cache.cache.viewkeys())))
+  logging.info('pre-expire size: {}'.format(len(cache.cache.keys())))
   cache.expire()
-  logging.info('post-expire size: {}'.format(len(cache.cache.viewkeys())))
+  logging.info('post-expire size: {}'.format(len(cache.cache.keys())))
   count = 0
   for feed in pc.get_feeds():
     logging.info('Checking ' + feed[0])
