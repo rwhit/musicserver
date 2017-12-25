@@ -19,7 +19,7 @@ class MediaplayerController():
             self.cmd = 'mplayer -quiet -noconsolecontrols -slave -input file={0} -idle'.format(self.fifoName)
             with open('/dev/null') as DEVNULL:
                 self.process = Popen(args = self.cmd, shell = True, stdin=DEVNULL, close_fds=True)
-            self.fifo = open(self.fifoName, 'a')
+            self.fifo = open(self.fifoName, 'w')
         #else:
             #self._message("loadfile " + url)
         self._message("loadfile " + url)
@@ -35,7 +35,7 @@ class MediaplayerController():
         self.cmd = self.cmd.format(self.fifoName, url, tmpfile)
         with open('/dev/null') as DEVNULL:
             self.process = Popen(args = self.cmd, shell = True, stdin=DEVNULL, close_fds=True)
-        self.fifo = open(self.fifoName, 'a')
+        self.fifo = open(self.fifoName, 'w')
 
     def _message(self, msg):
         self.fifo.write(msg)
