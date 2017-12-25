@@ -17,7 +17,7 @@ class AlbumController(BaseController):
         try:
             conn = self.connFactory.getConnection()
             with conn.cursor() as cursor:
-                cursor.execute('select title, artist, path, id from album order by title')
+                cursor.execute('select title, ar.name, path, al.id from album al join artist ar on al.artist_id = ar.id order by title')
                 albumData = cursor.fetchone()
                 while albumData:
                     albums.append(albumData)

@@ -5,6 +5,8 @@ import logging
 FORMAT = '%(asctime)-15s:%(name)s:%(levelname)s:%(message)s:%(funcName)s:%(module)s:%(lineno)d'
 logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 
+from musicServerConfig import MusicServerConfig as Config
+from connFactory import ConnFactory
 from flask import Flask, render_template, request, url_for, redirect
 from flask_socketio import SocketIO, emit
 from pianobarController import PianobarController
@@ -160,7 +162,9 @@ ALBUMS = None
 def getAlbumController():
     global ALBUMS
     if not ALBUMS:
-        ALBUMS = AlbumController()
+        config = Config()
+        factory = ConnFactory(config)
+        ALBUMS = AlbumController(config, factory)
     return ALBUMS
 
 @app.route("/albums/")
