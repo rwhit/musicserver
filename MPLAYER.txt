@@ -1,0 +1,90 @@
+http://www.mplayerhq.hu/DOCS/tech/slave.txt
+http://ascii-table.com/ansi-escape-sequences.php for decoding escape sequences in output
+
+- initial output on starting new audio file
+
+DEBUG:root:MPC:mplayer-stdout:b'MPlayer 1.1-4.2.1 (C) 2000-2012 MPlayer Team\n'
+>>> DEBUG:root:MPC:mplayer-stdout:b'\n'
+DEBUG:root:MPC:mplayer-stdout:b"Playing /Users/rwhitworth/Music/iTunes//iTunes Media/Music/Arlo Guthrie/Alice's Restaurant/01 Alice's Restaurant Massacree.m4a.\n"
+DEBUG:root:MPC:mplayer-stdout:b'libavformat version 54.6.100 (internal)\n'
+DEBUG:root:MPC:mplayer-stdout:b'libavformat file format detected.\n'
+DEBUG:root:MPC:mplayer-stdout:b'[lavf] stream 0: audio (aac), -aid 0, -alang eng\n'
+DEBUG:root:MPC:mplayer-stdout:b'Clip info:\n'
+DEBUG:root:MPC:mplayer-stdout:b' major_brand: M4A \n'
+DEBUG:root:MPC:mplayer-stdout:b' minor_version: 0\n'
+DEBUG:root:MPC:mplayer-stdout:b' compatible_brands: M4A mp42isom\n'
+DEBUG:root:MPC:mplayer-stdout:b' creation_time: 2019-11-16 01:35:08\n'
+DEBUG:root:MPC:mplayer-stdout:b" title: Alice's Restaurant Massacree\n"
+DEBUG:root:MPC:mplayer-stdout:b' artist: Arlo Guthrie\n'
+DEBUG:root:MPC:mplayer-stdout:b' album_artist: Arlo Guthrie\n'
+DEBUG:root:MPC:mplayer-stdout:b" album: Alice's Restaurant\n"
+DEBUG:root:MPC:mplayer-stdout:b' genre: Singer/Songwriter\n'
+DEBUG:root:MPC:mplayer-stdout:b' track: 1/7\n'
+DEBUG:root:MPC:mplayer-stdout:b' gapless_playback: 0\n'
+DEBUG:root:MPC:mplayer-stdout:b' date: 1967-09-01T07:00:00Z\n'
+DEBUG:root:MPC:mplayer-stdout:b' copyright: \xe2\x84\x97 (c)1967 Warner Bros. Records Inc. for the United States and WEA International Inc. for the world outside of the United States.\n'
+DEBUG:root:MPC:mplayer-stdout:b' media_type: 1\n'
+DEBUG:root:MPC:mplayer-stdout:b"Load subtitles in /Users/rwhitworth/Music/iTunes//iTunes Media/Music/Arlo Guthrie/Alice's Restaurant/\n"
+DEBUG:root:MPC:mplayer-stdout:b'==========================================================================\n'
+DEBUG:root:MPC:mplayer-stdout:b'Opening audio decoder: [ffmpeg] FFmpeg/libavcodec audio decoders\n'
+DEBUG:root:MPC:mplayer-stdout:b'libavcodec version 54.23.100 (internal)\n'
+DEBUG:root:MPC:mplayer-stdout:b'AUDIO: 44100 Hz, 2 ch, s16le, 267.8 kbit/18.98% (ratio: 33481->176400)\n'
+DEBUG:root:MPC:mplayer-stdout:b'Selected audio codec: [ffaac] afm: ffmpeg (FFmpeg AAC (MPEG-2/MPEG-4 Audio))\n'
+DEBUG:root:MPC:mplayer-stdout:b'==========================================================================\n'
+DEBUG:root:MPC:mplayer-stdout:b'AO: [coreaudio] 44100Hz 2ch s16le (2 bytes per sample)\n'
+DEBUG:root:MPC:mplayer-stdout:b'Video: no video\n'
+DEBUG:root:MPC:mplayer-stdout:b'Starting playback...\n'
+
+  
+- output at end of file:
+
+>>> DEBUG:root:MPC:mplayer-stdout:b'\x1b[A\r\x1b[K\n'
+DEBUG:root:MPC:mplayer-stdout:b'\n'
+DEBUG:root:MPC:mplayer-stdout:b'\n'
+
+  ** I think sequence of 3 \n is pretty reliable EOF indicator, but can double check w/get_property:
+
+- response to get/set_property when not playing:
+
+>>> mp.write('set_property volume 25')
+>>> Failed to set property 'volume' to '25'.
+DEBUG:root:MPC:mplayer-stdout:b'ANS_ERROR=PROPERTY_UNAVAILABLE\n'
+
+- Volume
+  > get_property volume
+  < b'ANS_volume=25.000000\n'
+  > set_property volume [0-100]
+    * no reponse *
+- Position/Duration
+  -- get_time_pos/length
+  >>> mp.write('get_time_pos')
+  >>> DEBUG:root:MPC:mplayer-stdout:b'ANS_TIME_POSITION=963.3\n'
+  mp.write('get_time_length')
+  >>> DEBUG:root:MPC:mplayer-stdout:b'ANS_LENGTH=1117.00\n'
+
+  -- get_property is better - gives a response when not playing (vs silent)
+  mp.write('get_property length')
+  >>> DEBUG:root:MPC:mplayer-stdout:b'ANS_length=1116.995918\n'
+
+  >>> mp.write('get_property time_pos')
+  >>> DEBUG:root:MPC:mplayer-stdout:b'ANS_time_pos=112.814150\n'
+
+
+
+  -- seek <secs> 2     # secs is relative for 0, % for 1, abs for 2
+  mp.write('seek 200 2')
+  >>> DEBUG:root:MPC:mplayer-stdout:b'\x1b[A\r\x1b[KPosition: 17 %\n'
+
+  -- set_property version
+  mp.write('set_property time_pos 300')
+  >>> DEBUG:root:MPC:mplayer-stdout:b'\x1b[A\r\x1b[KPosition: 26 %\n'
+
+- pause
+
+  > mp.write('pause')
+    * no response *
+  
+  when  paused, most commands will un-pause unless prefixed with 'pausing_keep'
+
+
+
