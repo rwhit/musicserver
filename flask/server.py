@@ -21,83 +21,169 @@ import secrets as SECRETS
 import time
 import json
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'super secry'
-socketio = SocketIO(app)
-PORT = 80
-HOST = '0.0.0.0'
-PCONTROLLER = None
+server=None
 
-@app.route("/")
+class Server:
+        
+    def __init__(self, config):
+        self.config = config
+        self.app = Flask(__name__)
+        self.app.config['SECRET_KEY'] = SECRETS.flaskSecretKey
+        self.socketio = SocketIO(self.app)
+        self.pandoraController = None
+        self.podcastController = None
+        self.radioController = None
+        return
+    
+    def getPandora(self, check=False):
+        if not server.pandoraController:
+            server.pandoraController = PianobarController()
+        elif(check):
+            server.pandoraController.check_status()
+        return server.pandoraController
+        
+    def getPodcast(self):
+        if not self.podcastController:
+            self.podcastController = PodcastController(self.config)
+        return self.podcastController
+
+    def getRadio(self):
+        if not self.radioController:
+            self.radioController = RadioController(self.config)
+        return self.radioController
+
+def registerRoutes(server):
+    @server.app.route("/radio/")
+    def radio():
+        radio = server.getRadio()
+        return render_template("radio.html",
+                               data=radio.get_latest(),
+                               paused=radio.is_paused(),
+                               time=radio.get_time(),
+                               volume=radio.get_volume())
+
+    def broadcast_radio(action, data):
+        server.socketio.emit(action, data, namespace="/radiosocket")
+
+    @server.socketio.on("message", namespace="/radiosocket")
+    def radio_message(message):
+        data = message["data"].split('|')
+        if data[0] == 's':
+            server.getRadio().play(data[1],data[2])
+        elif data[0] == 'pause':
+            server.getRadio().pause()
+            broadcast_radio("onpause", {"paused": server.getRadio().is_paused()})
+        else:
+            logging.warn('Unknown radiosocket message: ' + mesage)
+        return "OK"
+
+    @server.app.route('/mpcPushHandler', methods=['POST'])
+    def mpcPushHandler():
+        # TODO implement
+        try:
+            logging.debug('mcpPush - raw: %s', str(request.get_json()))
+            logging.debug('mpcPush: %s', request.get_json()['status'])
+        except Exception as ex:
+            logging.error('mpcPush error: %s', ex)
+            # TODO once this is working, should probably return an error here
+        return ''
+    
+def main():
+    global server
+    FORMAT = '%(asctime)-15s %(clientip)s %(user)-8s %(message)s'
+    logging.basicConfig(format=FORMAT)
+    logging.info('starting server')
+    # disable flash policy server
+    # TODO read from json config file
+    config={
+        'listenHost': '127.0.0.1',
+        'listenPort': 8081,
+        'mpcPath':    '/Users/rwhitworth/Documents/Personal/Go/mplayer/bin/mplayerController',
+        'mpcUrl':     'http://localhost:8080/'
+    }
+    #
+    # derived config
+    #
+
+    # always send to localhost
+    config['mplayerPushUrl'] = 'http://localhost:{}/mpcPushHandler'.format(config['listenPort'])
+
+    # here we go
+    server = Server(config)
+    registerRoutes(server)
+    server.socketio.run(server.app, port=config['listenPort'], host=config['listenHost'])
+    broadcast_admin("adminResult", {"result":"server (re)started"})
+
+if __name__ == '__main__':
+    main()
+
+#
+# routes
+#
+
+# TODO move any non-trivial logic below out to sep classes - esp. npr stuff
+@server.app.route("/")
 def index():
     return render_template("index.html")
 
-@app.route("/pandora/")
+@server.app.route("/pandora/")
 def pandora():
-    global PCONTROLLER
-    if not PCONTROLLER:
-        PCONTROLLER = PianobarController()
-    else:
-        PCONTROLLER.check_status()
+    pc = server.getPandora(True)
     return render_template("pandora.html",
-                data=PCONTROLLER.get_latest(),
-                paused=PCONTROLLER.is_paused(),
-                time=PCONTROLLER.get_time(),
-                volume=PCONTROLLER.get_volume())
+                           data = pc.get_latest(),
+                           paused = pc.is_paused(),
+                           time = pc.get_time(),
+                           volume = pc.get_volume())
 
 @socketio.on("volume", namespace="/pandorasocket")
 def pandora_volume(volume):
-    PCONTROLLER.set_volume(int(volume["data"]))
-    broadcast_pandora("volumechanged", {"volume":PCONTROLLER.get_volume()})
+    server.getPandora().set_volume(int(volume["data"]))
+    broadcast_pandora("volumechanged", {"volume": server.getPandora().get_volume()})
 
 @socketio.on("message", namespace="/pandorasocket")
 def pandora_message(message):
     data = message["data"]
-    PCONTROLLER.write(message["data"])
+    server.getPandora().write(message["data"])
     if data == "p":
-        PCONTROLLER.pause()
-        broadcast_pandora("onpause", {"paused":PCONTROLLER.is_paused()})
-    if PCONTROLLER.is_paused() and data[0:1] == "s":
-        PCONTROLLER.pause()
-        broadcast_pandora("onpause", {"paused":PCONTROLLER.is_paused()})
+        server.getPandora().pause()
+        broadcast_pandora("onpause", {"paused": server.getPandora().is_paused()})
+    if server.getPandora().is_paused() and data[0:1] == "s":
+        server.getPandora().pause()
+        broadcast_pandora("onpause", {"paused": server.getPandora().is_paused()})
     return "OK"
 
 # this is wired to pianbar via /root/.pianobar/config/eventcmd.py
-@app.route("/pianobar/<action>", methods=["POST"])
+@server.app.route("/pianobar/<action>", methods=["POST"])
 def pianobar_message(action):
     data = request.json
     logging.debug("pianobar_message - action: {0} data: {1}".format(action, data))
-    PCONTROLLER.set_latest(action, data)
+    server.getPandora().set_latest(action, data)
     broadcast_pandora(action, data)
     return "OK"
 
 def broadcast_pandora(action, data):
     socketio.emit(action, data, namespace="/pandorasocket")
 
-PODCAST = None
-
-def getPodcast():
-    global PODCAST
-    if not PODCAST:
-        PODCAST = PodcastController()
-    return PODCAST
-    
-@app.route("/podcast/")
+@server.app.route("/podcast/")
 def podcast():
     return render_template("podcast.html",
-        feeds=getPodcast().get_feeds())
+        feeds = server.getPodcast().get_feeds())
 
-@app.route("/podcast/feed/<path:url>")
+@server.app.route("/podcast/feed/<path:url>")
 def podcast_feed(url):
     return render_template("podcast_feed.html",
-        podcasts=getPodcast().get_feed(url))
+                           podcasts = server.getPodcast().get_feed(url))
 
-@app.route("/podcast/play/<path:url>")
+@server.app.route("/podcast/play/<path:url>")
 def podcast_play(url):
-    return render_template("podcast_play.html",
-        podcast=getPodcast().play_podcast(url,request.args.get('duration'), request.args.get('durationSecs'), request.args.get('title')),
-        paused=False,
-        time=getPodcast().get_time())
+    return render_template(
+        "podcast_play.html",
+        podcast = server.getPodcast().play_podcast(url,
+                                                   request.args.get('duration'),
+                                                   request.args.get('durationSecs'),
+                                                   request.args.get('title')),
+        paused = False,
+        time = server.getPodcast().get_time())
 
 def broadcast_podcast(action, data):
     socketio.emit(action, data, namespace="/podcastsocket")
@@ -106,33 +192,28 @@ def broadcast_podcast(action, data):
 def podcast_message(message):
     data = message["data"].split('|')
     if data[0] == 'mp':
-       getPodcast().write(data[1])
+        # TODO no more direct writes - what is this for?
+        #server.getPodcast().write(data[1])
+        logging.warn('direct write to mplayer fifo no longer supported: {}'.format(data))
     elif data[0] == 'ct':
-       if data[1] == 'next':
-         getPodcast().playNext()
-       elif data[1] == 'pause':
-         getPodcast().pause()
-         broadcast_podcast("onpause", {"paused":getPodcast().is_paused()})
-       elif data[1] == 'swap':
-         getPodcast().swap(data[2], data[3])
-       else:
-         logging.warn('Unknown podcastsocket message: ' + message)
+        if data[1] == 'next':
+            server.getPodcast().playNext()
+        elif data[1] == 'pause':
+            server.getPodcast().pause()
+            broadcast_podcast("onpause", {"paused": server.getPodcast().is_paused()})
+        elif data[1] == 'swap':
+            server.getPodcast().swap(data[2], data[3])
+        else:
+            logging.warn('Unknown podcastsocket message: ' + message)
     else:
-      logging.warn('Unknown podcastsocket message: ' + message)
+        logging.warn('Unknown podcastsocket message: ' + message)
     return "OK"
 
 
-RADIO = None
 
-def getRadio():
-    global RADIO
-    if not RADIO:
-        RADIO = RadioController()
-    return RADIO
-
-@app.route("/radio/")
+@server.app.route("/radio/")
 def radio():
-    radio = getRadio()
+    radio = server.getRadio()
     return render_template("radio.html",
                 data=radio.get_latest(),
                 paused=radio.is_paused(),
@@ -146,10 +227,10 @@ def broadcast_radio(action, data):
 def radio_message(message):
     data = message["data"].split('|')
     if data[0] == 's':
-       getRadio().play(data[1],data[2])
+       server.getRadio().play(data[1],data[2])
     elif data[0] == 'pause':
-       getRadio().pause()
-       broadcast_radio("onpause", {"paused":getRadio().is_paused()})
+       server.getRadio().pause()
+       broadcast_radio("onpause", {"paused": server.getRadio().is_paused()})
     else:
          logging.warn('Unknown radiosocket message: ' + mesage)
     return "OK"
@@ -159,7 +240,7 @@ NPR_STATE_NEED_TOKEN=1
 NPR_STATE_AUTHORIZED=2
 
 SCHEME_AND_HOST = 'http://rasp-music'
-@app.route("/nprOne")
+@server.app.route("/nprOne")
 def nprOne():
   # see nprOne/flow.txt
   state=getNprState(request)
@@ -356,7 +437,7 @@ def generateCsrf(request, key):
   # TODO implement for reals
   return 'abc123'
 
-@app.route("/admin")
+@server.app.route("/admin")
 def admin():
    return render_template("admin.html")
 
@@ -381,10 +462,3 @@ def admin_message(message):
    broadcast_admin("adminResult", {"result":"restarting server - " + str(result)})
    return "OK"
 
-if __name__ == '__main__':
-    FORMAT = '%(asctime)-15s %(clientip)s %(user)-8s %(message)s'
-    logging.basicConfig(format=FORMAT)
-    logging.info('starting server')
-    # disable flash policy server
-    socketio.run(app, port=PORT, host=HOST)
-    broadcast_admin("adminResult", {"result":"server restarted"})

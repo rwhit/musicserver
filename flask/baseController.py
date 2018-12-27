@@ -1,6 +1,6 @@
 import time
 
-class BaseController():
+class BaseController(object):
     def __init__(self):
         self.volume = 5
         self.paused = False
@@ -13,7 +13,8 @@ class BaseController():
             self.elapsedTime = self.elapsedTime + time.time() - self.startTime
         else:
             self.startTime = time.time()
-
+        return self.paused
+    
     def is_paused(self):
         return self.paused
 

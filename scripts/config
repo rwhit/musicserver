@@ -1,1 +1,6 @@
-MUSIC_BASE=/home/pi/musicserver
+#MUSIC_BASE=/home/pi/musicserver
+#MUSIC_PYTHON=/usr/bin/python
+#MUSIC_XARGS=xargs -r
+MUSIC_BASE=/Users/rwhitworth/Documents/Personal/RaspPi/musicserver
+MUSIC_PYTHON=python
+MUSIC_XARGS=xargs

@@ -1,59 +1,51 @@
 from subprocess import Popen
 import logging
-
+import requests
+import time
 logging.basicConfig(level=logging.DEBUG)
 
 class MediaplayerController():
-    def __init__(self):
-        self.fifoName = '/home/pi/mediaplayer/fifo'
+    def __init__(self, config):
+        '''
+        config is map, with these required values:
+        - mplayerPushUrl - target for mplayerController.pushStatus
+        - mpcUrl - url mplayerController listens on
+        - mpcPath - to invoke mplayerController
+        '''
         self.process = None
-        self.fifo = None
         self.url = None
         self.cmd = None
+        self.config = config
 
     def _open(self, url):
         self.url = url
         if not self.process:
-            # -idle will allow no url
-            # self.cmd = 'mplayer -quiet -noconsolecontrols -slave -input file={0} {1}'.format(self.fifoName, url)
-            self.cmd = 'mplayer -quiet -noconsolecontrols -slave -input file={0} -idle'.format(self.fifoName)
+            self.cmd = [ self.config['mpcPath'] ]
             with open('/dev/null') as DEVNULL:
-                self.process = Popen(args = self.cmd, shell = True, stdin=DEVNULL, close_fds=True)
-            self.fifo = open(self.fifoName, 'a')
-        #else:
-            #self._message("loadfile " + url)
-        self._message("loadfile " + url)
-
-    def _downloadAndPlay(self, url):
-        self.url = url
-        # kill old instance - with this method (reading pipe from stdin), don't have a way to swith to new pipe
-        if self.process:
-            self._message("quit")
-        # TODO fix this
-        tmpfile = '/tmp/mplayer-cache'
-        self.cmd = "bash -c 'curl -s \"{1}\" >{2} 2>/dev/null & ( tail -f -n +1 --pid $! | mplayer -quiet -noconsolecontrols -slave -input file={0} {1} )'"
-        self.cmd = self.cmd.format(self.fifoName, url, tmpfile)
-        with open('/dev/null') as DEVNULL:
-            self.process = Popen(args = self.cmd, shell = True, stdin=DEVNULL, close_fds=True)
-        self.fifo = open(self.fifoName, 'a')
-
-    def _message(self, msg):
-        self.fifo.write(msg)
-        self.fifo.write("\n")
-        self.fifo.flush()
+                self.process = Popen(args = self.cmd, shell = False, stdin=DEVNULL, close_fds=True)
+                # give it a chance to start
+                # TODO actually poll for port to be bound
+                time.sleep(.1)
+            self._command('PushStatus', {'url': self.config['mplayerPushUrl'], 'freqSecs': 5})
+        # TODO send /Play?url=url
+        self._command('Play', {'url': url})
+        
+    def _command(self, cmd, argMap=[]):
+        url = self.config['mpcUrl'] + cmd
+        logging.debug('POSTing to {}'.format(url))
+        requests.post(url, data=argMap)
 
     def play(self, url):
         logging.debug("MPC: playing " + url)
         self._open(url)
 
-    def downloadAndPlay(self, url):
-        logging.debug("MPC: downloading & playing " + url)
-        self._downloadAndPlay(url)
+    def pause(self):
+        logging.debug("MPC: pausing")
+        self._command('Pause')
 
-    # see http://www.mplayerhq.hu/DOCS/tech/slave.txt for commands
-    def write(self, message):
-        if self.process:
-            self._message(message)
+    def resume(self):
+        logging.debug("MPC: resuming")
+        self._command('Resume')
 
     def close(self):
         if self.process:
@@ -69,8 +61,8 @@ class MediaplayerController():
             
 
 MEDIAPLAYER = None
-def get_mediaplayer():
+def get_mediaplayer(config):
     global MEDIAPLAYER
     if not MEDIAPLAYER:
-        MEDIAPLAYER = MediaplayerController()
+        MEDIAPLAYER = MediaplayerController(config)
     return MEDIAPLAYER

@@ -15,14 +15,14 @@ do
   [[ -f $f ]] && mv $f $f.$(date +%Y-%m-%d_%H-%M)
 done
 cd ..
-cmd="/usr/bin/python $MUSIC_BASE/flask/server.py"
+cmd="$MUSIC_PYTHON $MUSIC_BASE/flask/server.py"
 # kill old instance, if any
 oldpid=$(pgrep -f "$cmd")
 [[ ! -z $oldpid ]] && { $MUSIC_BASE/scripts/killtree.sh $oldpid; lsof -P | grep LISTEN | grep ":80"; }
 cd logs
 # cleanup, zip old logs
-find . -type f -mtime +60 | xargs -r rm -f
-find . -type f \! \( -name \*.gz -o -name \*.out -o -name \*.err \) | xargs -r gzip
+find . -type f -mtime +60 | $MUSIC_XARGS rm -f
+find . -type f \! \( -name \*.gz -o -name \*.out -o -name \*.err \) | $MUSIC_XARGS gzip
 cd ..
 nohup $cmd >logs/server.out 2>logs/server.err &
 if [ ! -z "$pidfile" ]

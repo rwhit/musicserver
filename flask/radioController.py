@@ -4,10 +4,16 @@ import psycopg2
 import time
 
 class RadioController(BaseController):
-    def __init__(self):
+    def __init__(self, config):
+        '''
+        config - see mediaplayerController.__init__
+        '''
+        # TODO get this working
+        # super(RadioController, self).__init__()
         BaseController.__init__(self)
         self.volume = 5
         self.station = ''
+        self.config = config
 
     def _getStations(self):
         stations = []
@@ -21,8 +27,8 @@ class RadioController(BaseController):
         return stations
     
     def play(self, url, station):
-        mp = get_mediaplayer()
-        mp.play(url)
+        self.mp = get_mediaplayer(self.config)
+        self.mp.play(url)
         self.paused = False
         self.elapsedTime = 0
         self.startTime = time.time()
@@ -34,10 +40,10 @@ class RadioController(BaseController):
 
     # override
     def pause(self):
-        self.write('pause')
-	BaseController.pause(self)
-
-    # write straight to mplayer fifo
-    def write(self, message):
-        get_mediaplayer().write(message)
+	s = super(RadioController, self)
+        isPaused = s.pause()
+        if isPaused:
+            self.mp.pause()
+        else:
+            self.mp.resume()
                 
