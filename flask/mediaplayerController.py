@@ -25,7 +25,7 @@ class MediaplayerController():
                 self.process = Popen(args = self.cmd, shell = False, stdin=DEVNULL, close_fds=True)
                 # give it a chance to start
                 # TODO actually poll for port to be bound
-                time.sleep(.1)
+                time.sleep(.5)
             self._command('PushStatus', {'url': self.config['mplayerPushUrl'], 'freqSecs': 5})
         # TODO send /Play?url=url
         self._command('Play', {'url': url})

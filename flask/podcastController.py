@@ -13,12 +13,13 @@ import logging
 import subprocess
 
 class PodcastController(BaseController):
-    def __init__(self):
+    def __init__(self, config):
         BaseController.__init__(self)
+        self.config = config
         self.paused = True
         self.elapsedTime = 0
         self.startTime = time.time()
-	self.cache = FileCache('dbname=pi user=pi', '/data/musicserver/cache')
+        self.cache = FileCache('dbname=pi user=pi', '/data/musicserver/cache')
 
     def get_feeds(self):
         feeds = []
@@ -77,7 +78,7 @@ class PodcastController(BaseController):
         return feed
 
     def play_podcast(self, url, duration, durationSecs, title):
-        mp = get_mediaplayer()
+        mp = get_mediaplayer(self.config)
         logging.info("orig url: " + url)
         url=unquote(url)
         logging.info("decoded: " + url)

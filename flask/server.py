@@ -53,6 +53,106 @@ class Server:
         return self.radioController
 
 def registerRoutes(server):
+    @server.app.route("/")
+    def index():
+        return render_template("index.html")
+
+    #
+    # pandora
+    #
+    # TODO move any non-trivial logic below out to sep classes - esp. npr stuff
+    @server.app.route("/pandora/")
+    def pandora():
+        pc = server.getPandora(True)
+        return render_template("pandora.html",
+                               data = pc.get_latest(),
+                               paused = pc.is_paused(),
+                               time = pc.get_time(),
+                               volume = pc.get_volume())
+
+    @server.socketio.on("volume", namespace="/pandorasocket")
+    def pandora_volume(volume):
+        server.getPandora().set_volume(int(volume["data"]))
+        broadcast_pandora("volumechanged", {"volume": server.getPandora().get_volume()})
+
+    @server.socketio.on("message", namespace="/pandorasocket")
+    def pandora_message(message):
+        data = message["data"]
+        server.getPandora().write(message["data"])
+        if data == "p":
+            server.getPandora().pause()
+            broadcast_pandora("onpause", {"paused": server.getPandora().is_paused()})
+            if server.getPandora().is_paused() and data[0:1] == "s":
+                server.getPandora().pause()
+                broadcast_pandora("onpause", {"paused": server.getPandora().is_paused()})
+        return "OK"
+
+    # this is wired to pianobar via /root/.pianobar/config/eventcmd.py
+    @server.app.route("/pianobar/<action>", methods=["POST"])
+    def pianobar_message(action):
+        data = request.json
+        logging.debug("pianobar_message - action: {0} data: {1}".format(action, data))
+        server.getPandora().set_latest(action, data)
+        broadcast_pandora(action, data)
+        return "OK"
+
+    def broadcast_pandora(action, data):
+        server.socketio.emit(action, data, namespace="/pandorasocket")
+
+
+    #
+    # podcast
+    #
+    @server.app.route("/podcast/")
+    def podcast():
+        return render_template("podcast.html",
+                               feeds = server.getPodcast().get_feeds())
+
+    @server.app.route("/podcast/feed/<path:url>")
+    def podcast_feed(url):
+        return render_template("podcast_feed.html",
+                               podcasts = server.getPodcast().get_feed(url))
+
+    @server.app.route("/podcast/play/<path:url>")
+    def podcast_play(url):
+        return render_template(
+            "podcast_play.html",
+            podcast = server.getPodcast().play_podcast(url,
+                                                       request.args.get('duration'),
+                                                       request.args.get('durationSecs'),
+                                                       request.args.get('title')),
+            paused = False,
+            time = server.getPodcast().get_time())
+
+    def broadcast_podcast(action, data):
+        server.socketio.emit(action, data, namespace="/podcastsocket")
+
+    @server.socketio.on("message", namespace="/podcastsocket")
+    def podcast_message(message):
+        data = message["data"].split('|')
+        if data[0] == 'mp':
+            # TODO no more direct writes - what is this for?
+            #server.getPodcast().write(data[1])
+            logging.warn('direct write to mplayer fifo no longer supported: {}'.format(data))
+        elif data[0] == 'ct':
+            if data[1] == 'next':
+                server.getPodcast().playNext()
+            elif data[1] == 'pause':
+                server.getPodcast().pause()
+                broadcast_podcast("onpause", {"paused": server.getPodcast().is_paused()})
+            elif data[1] == 'swap':
+                server.getPodcast().swap(data[2], data[3])
+            else:
+                logging.warn('Unknown podcastsocket message: ' + message)
+        else:
+            logging.warn('Unknown podcastsocket message: ' + message)
+        return "OK"
+
+
+    #
+    # radio
+    #
+
     @server.app.route("/radio/")
     def radio():
         radio = server.getRadio()
@@ -80,13 +180,49 @@ def registerRoutes(server):
     @server.app.route('/mpcPushHandler', methods=['POST'])
     def mpcPushHandler():
         # TODO implement
+        # trick is - who to route to? could be radio or podcast, etc
+        # options:
+        # - have an endpoint per
+        # - include a url routing param when register handler
+        # - refactor so that we'll be broadcasting result to the same place
+        #   regardless
+        # CURRENT status: working on wiring to radioController, just for
+        #                 testing
         try:
             logging.debug('mcpPush - raw: %s', str(request.get_json()))
-            logging.debug('mpcPush: %s', request.get_json()['status'])
         except Exception as ex:
             logging.error('mpcPush error: %s', ex)
             # TODO once this is working, should probably return an error here
         return ''
+
+
+    #
+    # admin
+    #
+    @server.app.route("/admin")
+    def admin():
+        return render_template("admin.html")
+
+    def broadcast_admin(action, data):
+        server.socketio.emit(action, data, namespace="/adminsocket")
+
+    # message: action
+    #     restart - restart server
+    @server.socketio.on("message", namespace="/adminsocket")
+    def admin_message(message):
+        action=message["data"]
+        logging.debug("/admin, action is " + str(action))
+        if(action == 'restart'):
+            logging.warn("Restarting server")
+            try:
+                with open(os.devnull,'r') as devNull:
+                    output="/tmp/restart.out"
+                    result=call(['( sleep 1;sudo service musicserver restart >' + output + ' 2>&1 ) &'], shell=True, stdin=devNull, close_fds=True)
+            except:
+                result="Exception: " + str(sys.exc_info())
+            logging.debug("admin result" + str(result))
+            broadcast_admin("adminResult", {"result":"restarting server - " + str(result)})
+        return "OK"
     
 def main():
     global server
@@ -117,124 +253,7 @@ def main():
 if __name__ == '__main__':
     main()
 
-#
-# routes
-#
-
-# TODO move any non-trivial logic below out to sep classes - esp. npr stuff
-@server.app.route("/")
-def index():
-    return render_template("index.html")
-
-@server.app.route("/pandora/")
-def pandora():
-    pc = server.getPandora(True)
-    return render_template("pandora.html",
-                           data = pc.get_latest(),
-                           paused = pc.is_paused(),
-                           time = pc.get_time(),
-                           volume = pc.get_volume())
-
-@socketio.on("volume", namespace="/pandorasocket")
-def pandora_volume(volume):
-    server.getPandora().set_volume(int(volume["data"]))
-    broadcast_pandora("volumechanged", {"volume": server.getPandora().get_volume()})
-
-@socketio.on("message", namespace="/pandorasocket")
-def pandora_message(message):
-    data = message["data"]
-    server.getPandora().write(message["data"])
-    if data == "p":
-        server.getPandora().pause()
-        broadcast_pandora("onpause", {"paused": server.getPandora().is_paused()})
-    if server.getPandora().is_paused() and data[0:1] == "s":
-        server.getPandora().pause()
-        broadcast_pandora("onpause", {"paused": server.getPandora().is_paused()})
-    return "OK"
-
-# this is wired to pianbar via /root/.pianobar/config/eventcmd.py
-@server.app.route("/pianobar/<action>", methods=["POST"])
-def pianobar_message(action):
-    data = request.json
-    logging.debug("pianobar_message - action: {0} data: {1}".format(action, data))
-    server.getPandora().set_latest(action, data)
-    broadcast_pandora(action, data)
-    return "OK"
-
-def broadcast_pandora(action, data):
-    socketio.emit(action, data, namespace="/pandorasocket")
-
-@server.app.route("/podcast/")
-def podcast():
-    return render_template("podcast.html",
-        feeds = server.getPodcast().get_feeds())
-
-@server.app.route("/podcast/feed/<path:url>")
-def podcast_feed(url):
-    return render_template("podcast_feed.html",
-                           podcasts = server.getPodcast().get_feed(url))
-
-@server.app.route("/podcast/play/<path:url>")
-def podcast_play(url):
-    return render_template(
-        "podcast_play.html",
-        podcast = server.getPodcast().play_podcast(url,
-                                                   request.args.get('duration'),
-                                                   request.args.get('durationSecs'),
-                                                   request.args.get('title')),
-        paused = False,
-        time = server.getPodcast().get_time())
-
-def broadcast_podcast(action, data):
-    socketio.emit(action, data, namespace="/podcastsocket")
-
-@socketio.on("message", namespace="/podcastsocket")
-def podcast_message(message):
-    data = message["data"].split('|')
-    if data[0] == 'mp':
-        # TODO no more direct writes - what is this for?
-        #server.getPodcast().write(data[1])
-        logging.warn('direct write to mplayer fifo no longer supported: {}'.format(data))
-    elif data[0] == 'ct':
-        if data[1] == 'next':
-            server.getPodcast().playNext()
-        elif data[1] == 'pause':
-            server.getPodcast().pause()
-            broadcast_podcast("onpause", {"paused": server.getPodcast().is_paused()})
-        elif data[1] == 'swap':
-            server.getPodcast().swap(data[2], data[3])
-        else:
-            logging.warn('Unknown podcastsocket message: ' + message)
-    else:
-        logging.warn('Unknown podcastsocket message: ' + message)
-    return "OK"
-
-
-
-@server.app.route("/radio/")
-def radio():
-    radio = server.getRadio()
-    return render_template("radio.html",
-                data=radio.get_latest(),
-                paused=radio.is_paused(),
-                time=radio.get_time(),
-                volume=radio.get_volume())
-
-def broadcast_radio(action, data):
-    socketio.emit(action, data, namespace="/radiosocket")
-
-@socketio.on("message", namespace="/radiosocket")
-def radio_message(message):
-    data = message["data"].split('|')
-    if data[0] == 's':
-       server.getRadio().play(data[1],data[2])
-    elif data[0] == 'pause':
-       server.getRadio().pause()
-       broadcast_radio("onpause", {"paused": server.getRadio().is_paused()})
-    else:
-         logging.warn('Unknown radiosocket message: ' + mesage)
-    return "OK"
-
+# TODO move routes up into registerRoutes, move the rest into an nprController.py
 NPR_STATE_NEED_AUTH=0
 NPR_STATE_NEED_TOKEN=1
 NPR_STATE_AUTHORIZED=2
@@ -437,28 +456,4 @@ def generateCsrf(request, key):
   # TODO implement for reals
   return 'abc123'
 
-@server.app.route("/admin")
-def admin():
-   return render_template("admin.html")
-
-def broadcast_admin(action, data):
-    socketio.emit(action, data, namespace="/adminsocket")
-
-# message: action
-#     restart - restart server
-@socketio.on("message", namespace="/adminsocket")
-def admin_message(message):
-   action=message["data"]
-   logging.debug("/admin, action is " + str(action))
-   if(action == 'restart'):
-     logging.warn("Restarting server")
-     try:
-       with open(os.devnull,'r') as devNull:
-         output="/tmp/restart.out"
-         result=call(['( sleep 1;sudo service musicserver restart >' + output + ' 2>&1 ) &'], shell=True, stdin=devNull, close_fds=True)
-     except:
-       result="Exception: " + str(sys.exc_info())
-   logging.debug("admin result" + str(result))
-   broadcast_admin("adminResult", {"result":"restarting server - " + str(result)})
-   return "OK"
 
