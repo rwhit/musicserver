@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 init=0
 if [ "$1" == '--init' ]
 then

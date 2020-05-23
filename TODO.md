@@ -38,3 +38,6 @@
   + update scheme to track what's available
   ? when listing podcasts, use union of cache + current feeds
 - also see https://pypi.python.org/pypi/requests-cache
+- add shairport
+  see http://raspberrypihq.com/how-to-turn-your-raspberry-pi-into-a-airplay-receiver-to-stream-music-from-your-iphone/
+  and https://github.com/mikebrady/shairport-sync

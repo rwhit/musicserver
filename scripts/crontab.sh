@@ -8,3 +8,7 @@ crontab <<EOF
 # hourly pre fetch podcasts
 28 * * * * flock --exclusive --nonblock /var/run/musicserver/PREFETCH_LOCK /home/pi/musicserver/scripts/prefetch.py >>${LOGS}/pre_fetch.out 2>&1
 EOF
+sudo crontab <<EOF
+# remount dobby just before the hourly prefetch
+26 * * * * mount /data/dobby
+EOF

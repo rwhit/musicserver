@@ -1,11 +1,13 @@
-from subprocess import Popen
+from subprocess import Popen,PIPE
 import logging
+import threading
 
 logging.basicConfig(level=logging.DEBUG)
 
+DEFAULT_FIFO = '/home/pi/mediaplayer/fifo'
 class MediaplayerController():
-    def __init__(self):
-        self.fifoName = '/home/pi/mediaplayer/fifo'
+    def __init__(self, fifo=DEFAULT_FIFO):
+        self.fifoName = fifo
         self.process = None
         self.fifo = None
         self.url = None
@@ -18,10 +20,10 @@ class MediaplayerController():
             # self.cmd = 'mplayer -quiet -noconsolecontrols -slave -input file={0} {1}'.format(self.fifoName, url)
             self.cmd = 'mplayer -quiet -noconsolecontrols -slave -input file={0} -idle'.format(self.fifoName)
             with open('/dev/null') as DEVNULL:
-                self.process = Popen(args = self.cmd, shell = True, stdin=DEVNULL, close_fds=True)
+                self.process = Popen(args = self.cmd, shell = True, stdin=DEVNULL, stdout=PIPE, close_fds=True)
             self.fifo = open(self.fifoName, 'w')
-        #else:
-            #self._message("loadfile " + url)
+            self.stdoutThread = threading.Thread(target=self.processStdout,name='mplayer-stdout')
+            self.stdoutThread.start()
         self._message("loadfile " + url)
 
     def _downloadAndPlay(self, url):
@@ -29,13 +31,15 @@ class MediaplayerController():
         # kill old instance - with this method (reading pipe from stdin), don't have a way to swith to new pipe
         if self.process:
             self._message("quit")
-        # TODO fix this
+        # TODO fix this (cleanup tmpfile - can't we just remove it once mplayer is running?)
         tmpfile = '/tmp/mplayer-cache'
         self.cmd = "bash -c 'curl -s \"{1}\" >{2} 2>/dev/null & ( tail -f -n +1 --pid $! | mplayer -quiet -noconsolecontrols -slave -input file={0} {1} )'"
         self.cmd = self.cmd.format(self.fifoName, url, tmpfile)
         with open('/dev/null') as DEVNULL:
-            self.process = Popen(args = self.cmd, shell = True, stdin=DEVNULL, close_fds=True)
+             self.process = Popen(args = self.cmd, shell = True, stdin=DEVNULL, stdout=PIPE, close_fds=True)
         self.fifo = open(self.fifoName, 'w')
+        self.stdoutThread = threading.Thread(target=self.processStdout,name='mplayer-stdout')
+        self.stdoutThread.start()
 
     def _message(self, msg):
         self.fifo.write(msg)
@@ -66,6 +70,10 @@ class MediaplayerController():
     def getPid(self):
         if self.process:
             return self.process.pid
+    def processStdout(self):
+        for line in self.process.stdout:
+            logging.debug("MPC:mplayer-stdout:" + str(line))
+
             
 
 MEDIAPLAYER = None
